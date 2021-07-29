@@ -25,7 +25,7 @@ d_reactions = {}
 # basic
 d_reactions["harold"] = ["Harold"]
 d_reactions["pog"] = ["pogchamp"]
-d_reactions["sadge"] = ["PepeHands"]
+d_reactions["sad"] = ["PepeHands"]
 d_reactions["rat"] = ["ratSHAKE"]
 d_reactions["smart"] = ["smart"]
 d_reactions["lol"] = ["pepekek"]
