@@ -26,10 +26,11 @@ async def on_message(message):
         await message.channel.send(response)
     
     emoji_reaction_names = get_reactions(msg)
-    for emoji in botclient.emojis:
-        for emoji_reaction_name in emoji_reaction_names:
-            if emoji_reaction_name == emoji.name:
-                await message.add_reaction(emoji)
+    if emoji_reaction_names:
+        for emoji in botclient.emojis:
+            for emoji_reaction_name in emoji_reaction_names:
+                if emoji_reaction_name == emoji.name:
+                    await message.add_reaction(emoji)
 
     if msg.startswith('.hello'):
         await message.channel.send('Hello!')

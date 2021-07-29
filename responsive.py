@@ -18,9 +18,11 @@ def get_response_trigger(msg):
 def generate_response_by_trigger(response_trigger):
     return random.choice(d_responses[response_trigger])
 
-# EMOJI REACTIONS
 
+# EMOJI REACTIONS
 d_reactions = {}
+
+# basic
 d_reactions["harold"] = ["Harold"]
 d_reactions["pog"] = ["pogchamp"]
 d_reactions["sadge"] = ["PepeHands"]
@@ -29,13 +31,16 @@ d_reactions["smart"] = ["smart"]
 d_reactions["lol"] = ["pepekek"]
 d_reactions["lmao"] = ["pepekek"]
 d_reactions["rat"] = ["ratSHAKE"]
-d_reactions["gains"] = [":hunghhhhhhuuu:"]
+d_reactions["gains"] = ["hunghhhhhhuuu"]
+# league of legends
+d_reactions["league"] = ["Harold"]
+# world of warcraft 
 d_reactions["spela wow"] = ["Harold"]
 d_reactions["raid"] = ["Harold"]
 d_reactions["dungeon"] = ["Harold"]
 d_reactions["keys"] = ["Harold"]
 d_reactions["transmog"] = ["Harold"]
-d_reactions["gains"] = [":hunghhhhhhuuu:"]
+
 
 def get_reactions(msg):
     lower_msg = msg.lower()
