@@ -1,9 +1,12 @@
 import discord
 import os
+import sys
 
 from memes_from_reddit import *
 from quotes import *
 from responsive import *
+
+print(sys.version)
 
 botclient = discord.Client()
 
@@ -12,7 +15,7 @@ BOTOWNER = os.getenv('BOTOWNER')
 
 @botclient.event
 async def on_ready():
-    print('We have logged in as {0.}')
+    print("We have logged in as " + botclient.user.name + "#" + botclient.user.discriminator)
 
 @botclient.event
 async def on_message(message):
