@@ -18,7 +18,6 @@ def get_response_trigger(msg):
 def generate_response_by_trigger(response_trigger):
     return random.choice(d_responses[response_trigger])
 
-
 # EMOJI REACTIONS
 d_reactions = {}
 
@@ -40,7 +39,6 @@ d_reactions["raid"] = ["Harold"]
 d_reactions["dungeon"] = ["Harold"]
 d_reactions["keys"] = ["Harold"]
 d_reactions["transmog"] = ["Harold"]
-
 
 def get_reactions(msg, available_emojis):
     lower_msg = msg.lower()

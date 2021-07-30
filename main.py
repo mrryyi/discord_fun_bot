@@ -7,8 +7,6 @@ from responsive import *
 
 botclient = discord.Client()
 
-
-
 GUILDID = os.getenv('GUILDID')
 
 @botclient.event
