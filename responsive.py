@@ -42,13 +42,16 @@ d_reactions["keys"] = ["Harold"]
 d_reactions["transmog"] = ["Harold"]
 
 
-def get_reactions(msg):
+def get_reactions(msg, available_emojis):
     lower_msg = msg.lower()
 
-    responses = []
+    reactions = []
 
     for reaction_trigger in d_reactions:
         if reaction_trigger in lower_msg:
-            responses.append(random.choice(d_reactions[reaction_trigger])) 
-    
-    return responses
+            reaction_emoji = random.choice(d_reactions[reaction_trigger])
+            for emoji in available_emojis:
+                if reaction_emoji == emoji.name:
+                    reactions.append(emoji)
+
+    return reactions
