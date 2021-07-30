@@ -7,6 +7,8 @@ from responsive import *
 
 botclient = discord.Client()
 
+
+
 GUILDID = os.getenv('GUILDID')
 
 @botclient.event
@@ -18,25 +20,27 @@ async def on_message(message):
     if message.author == botclient.user:
         return
 
+    message_sent = False
+
     msg = message.content
 
     response_trigger = get_response_trigger(msg)
-    if response_trigger != "":
+    if not message_sent and response_trigger != "":
         response = generate_response_by_trigger(response_trigger)
         await message.channel.send(response)
+        message_sent = True
     
     emoji_reactions = get_reactions(msg = msg, available_emojis = botclient.emojis)
     for emoji in emoji_reactions:
         await message.add_reaction(emoji)
 
-    if msg.startswith('.hello'):
-        await message.channel.send('Hello!')
-    
-    if msg.startswith('.inspire'):
+    if not message_sent and msg.startswith('.inspire'):
         inspire_quote  = get_inspire_quote()
         await message.channel.send(inspire_quote)
+        message_sent = True
     
-    if msg.startswith('.meme'):
+    if not message_sent and msg.startswith('.meme'):
         await message.channel.send(get_meme_message())
+        message_sent = True
 
 botclient.run(os.getenv('TOKEN'))
