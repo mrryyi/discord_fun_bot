@@ -42,5 +42,9 @@ async def on_message(message):
     if not message_sent and msg.startswith('.meme'):
         await message.channel.send(get_meme_message())
         message_sent = True
+    
+    if not message_sent and random.randint(1,69) == 42:
+        print("ligma balls")
+        await message.channel.send("ligma balls")
 
 botclient.run(os.getenv('TOKEN'))
