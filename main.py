@@ -8,6 +8,7 @@ from responsive import *
 botclient = discord.Client()
 
 GUILDID = os.getenv('GUILDID')
+BOTOWNER = os.getenv('BOTOWNER')
 
 @botclient.event
 async def on_ready():
@@ -18,28 +19,39 @@ async def on_message(message):
     if message.author == botclient.user:
         return
 
+    author = message.author.name + "#" + message.author.discriminator
+    
     message_sent = False
 
     msg = message.content
+    lower_msg = msg.lower()
 
-    response_trigger = get_response_trigger(msg)
+    response_trigger = get_response_trigger(msg = lower_msg)
     if not message_sent and response_trigger != "":
         response = generate_response_by_trigger(response_trigger)
         await message.channel.send(response)
         message_sent = True
-    
-    emoji_reactions = get_reactions(msg = msg, available_emojis = botclient.emojis)
+
+    emoji_reactions = get_reactions(msg = lower_msg, available_emojis = botclient.emojis)
     for emoji in emoji_reactions:
         await message.add_reaction(emoji)
 
-    if not message_sent and msg.startswith('.inspire'):
-        inspire_quote  = get_inspire_quote()
-        await message.channel.send(inspire_quote)
+    if not message_sent and lower_msg.startswith('.inspire'):
+        await message.channel.send(get_inspire_quote())
         message_sent = True
-    
-    if not message_sent and msg.startswith('.meme'):
+
+    if not message_sent and lower_msg.startswith('.meme'):
         await message.channel.send(get_meme_message())
         message_sent = True
+
+    if author == BOTOWNER:
+        if not message_sent:
+            unique_response = get_unique_response(msg = lower_msg)
+            if unique_response:
+                await message.delete()
+                await message.channel.send(unique_response)
+                message_sent = True
+
     
     if not message_sent and random.randint(1,69) == 42:
         print("ligma balls")

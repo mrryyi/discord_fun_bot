@@ -1,5 +1,6 @@
 import random
 
+# key = trigger, valuie = responses
 d_responses = {}
 d_responses["ligma"] = ["ligma balls", "ligma nuts", "ligma dick", "ligma ass"]
 d_responses["sugma"] = ["sugma balls", "sugma nuts", "sugma dick"]
@@ -9,9 +10,8 @@ d_responses["based"] = ["Based? Based on what? In your dick? Please shut the fuc
                         "Based 👌? Based 👌💯💦 on 🔛 what? In your 👉👌 dick 🍆? Please 🍆💦😂 shut 😷 the fuck 👉 up ☝ and use 🏻 words 🔚 properly 🎩 you 👉 fuckin 👌 troglodyte, do you 👈😀 think 💭 God 😇 gave 🎁📐 us 🇺🇸 a freedom 🙌 of speech 🗣 just to spew ⛲ random 🎰 words 🔚 that have no 😣 meaning 😏 that doesn't even 🌃 correllate to the topic ➕ of the conversation 🗣? Like 😄 please 🙏 you 👈 always 🕔 complain 🗣 about 💦 why 🤔 no 🙅 one ☝ talks 🗣 to you 👈 or no 🚫 one ☝💯 expresses 😤 their opinions 😤 on 🔛 you 😪💤👈 because you're always 🔥 spewing 💭 random 🎲 shit 👌 like 👍 poggers 😎💅 based ❌👨‍❤️‍👨 cringe 😬 and when 🍑 you 👈 try 😐 to explain 🤔💬 what it is and you 👈🏼 just say 💬 that it's funny 😃 like 😄 what? What the fuck 👉🌎🚫 is funny 😃 about ✨💦 that do you 👈 think 🤔 you'll just become 🅱💦😥 a stand-up comedian 🤡 that will get 🉐 a standing 🚹⬆ ovation just because you 👉 said 💬 \"cum 💦🔛\" in the stage 👄? HELL 👿🔥 NO 🚫 YOU 👉 FUCKIN 👉👌 IDIOT 💢, so please 🙏 shut 😷 the fuck 👉 up ⬆🆙 and use 🏻 words 🔚 properly 🎩 you 🌠👦🏼👉 dumb 👅 bitch 🐶🐕♀"]
 
 def get_response_trigger(msg):
-    lower_msg = msg.lower()
     for response_trigger in d_responses:
-        if response_trigger in lower_msg:
+        if response_trigger in msg:
             return response_trigger
     return ""
 
@@ -20,7 +20,6 @@ def generate_response_by_trigger(response_trigger):
 
 # EMOJI REACTIONS
 d_reactions = {}
-
 # basic
 d_reactions["harold"] = ["Harold"]
 d_reactions["pog"] = ["pogchamp"]
@@ -41,15 +40,27 @@ d_reactions["keys"] = ["Harold"]
 d_reactions["transmog"] = ["Harold"]
 
 def get_reactions(msg, available_emojis):
-    lower_msg = msg.lower()
-
     reactions = []
 
     for reaction_trigger in d_reactions:
-        if reaction_trigger in lower_msg:
+        if reaction_trigger in msg:
             reaction_emoji = random.choice(d_reactions[reaction_trigger])
             for emoji in available_emojis:
                 if reaction_emoji == emoji.name:
                     reactions.append(emoji)
 
     return reactions
+
+
+d_unique_responses = {}
+d_unique_responses[".jahhok"] = ["ahh ok då fattar jag", "makes sense", "låter rimligt asså"]
+d_unique_responses[".jwtf"] = ["asså what the fuck hahaha", "wow wtf", "asså wtf"]
+
+def get_unique_response(msg):
+    for unique_response_trigger in d_unique_responses:
+        if msg.startswith(unique_response_trigger):
+            return generate_unique_response(unique_response_trigger)
+    return ""
+
+def generate_unique_response(trigger):
+    return random.choice(d_unique_responses[trigger])
