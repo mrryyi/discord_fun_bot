@@ -1,6 +1,6 @@
 import random
 
-# key = trigger, valuie = responses
+# key = trigger, value = responses
 d_responses = {}
 d_responses["ligma"] = ["ligma balls", "ligma nuts", "ligma dick", "ligma ass"]
 d_responses["sugma"] = ["sugma balls", "sugma nuts", "sugma dick"]

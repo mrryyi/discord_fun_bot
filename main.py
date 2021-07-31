@@ -41,7 +41,7 @@ async def on_message(message):
     
     if not message_sent and str(botclient.user.id) in msg:
         if "Gustaf" in message.author.name:
-            await message.channel.send("fuck you autism looking ass")
+            await message.channel.send("don't @ me autism looking ass")
         else:
             await message.channel.send("don't @ me")
         message_sent = True
