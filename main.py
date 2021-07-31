@@ -13,6 +13,7 @@ botclient = discord.Client()
 GUILDID = os.getenv('GUILDID')
 BOTOWNER = os.getenv('BOTOWNER')
 
+
 @botclient.event
 async def on_ready():
     print("We have logged in as " + botclient.user.name + "#" + botclient.user.discriminator)
@@ -29,10 +30,20 @@ async def on_message(message):
     msg = message.content
     lower_msg = msg.lower()
 
+    print(lower_msg)
+    print(botclient.user.id)
+
     response_trigger = get_response_trigger(msg = lower_msg)
     if not message_sent and response_trigger != "":
         response = generate_response_by_trigger(response_trigger)
         await message.channel.send(response)
+        message_sent = True
+    
+    if not message_sent and str(botclient.user.id) in msg:
+        if "Gustaf" in message.author.name:
+            await message.channel.send("fuck you autism looking ass")
+        else:
+            await message.channel.send("don't @ me")
         message_sent = True
 
     emoji_reactions = get_reactions(msg = lower_msg, available_emojis = botclient.emojis)
