@@ -92,6 +92,28 @@ def print_user(user):
     print(user.id)
     print(combine_name_discriminator(user))
 
+def handle_swenglish(context):
+    swenglish_data = get_swenglish_data(context.content.lower())
+    swenglish_verdict = swenglish_data["swenglish_verdict"]
+    if swenglish_verdict == "swenglish":
+        update_swenglish_table(context)
+
+async def handle_response_trigger(context):
+    response_trigger = get_response_trigger(context.content.lower())
+    if response_trigger != "":
+        response = generate_response_by_trigger(response_trigger)
+        await context.channel.send(response)
+        return True
+
+async def handle_atting(context):
+    if str(botclient.user.id) in context.content:
+        if "Gustaf" in context.author.name:
+            await context.channel.send("don't @ me autism looking ass")
+        else:
+            await context.channel.send("don't @ me")
+        return True
+    
+
 async def reaction(context):
     emoji_reactions = get_reactions(msg = context.content.lower(), available_emojis = botclient.emojis)
     for emoji in emoji_reactions:
@@ -117,24 +139,13 @@ async def on_message(context):
     
     print("Message: ["+ lower_msg + "]")
 
-    response_trigger = get_response_trigger(msg = lower_msg)
-    if not message_sent and response_trigger != "":
-        response = generate_response_by_trigger(response_trigger)
-        await context.channel.send(response)
-        message_sent = True
+    if not message_sent:
+        message_sent = await handle_response_trigger(context)
     
-    if not message_sent and str(botclient.user.id) in msg:
-        if "Gustaf" in context.author.name:
-            await context.channel.send("don't @ me autism looking ass")
-        else:
-            await context.channel.send("don't @ me")
-        message_sent = True
+    if not message_sent:
+        message_sent = await handle_atting(context)
     
-    swenglish_data = get_swenglish_data(sentence=lower_msg)
-    swenglish_verdict = swenglish_data["swenglish_verdict"]
-    if swenglish_verdict == "swenglish":
-        update_swenglish_table(context)
-
+    handle_swenglish(context)
     await reaction(context)
 
     if not message_sent and lower_msg.startswith('.inspire'):
@@ -148,7 +159,7 @@ async def on_message(context):
     if lower_msg.startswith('.debug_sql_swenglish'):
         show_swenglish_table()
     
-    if lower_msg.startswith('.swenglish_so_far') and combined_author_name == BOTOWNER:
+    if lower_msg.startswith('.swenglish_so_far'):# and combined_author_name == BOTOWNER:
         swenglish_table = get_swenglish_messages()
         message = ""
         for row in swenglish_table:
@@ -164,7 +175,7 @@ async def on_message(context):
         await context.channel.send(message)
         message_sent = True
     
-    if lower_msg.startswith('.swenglish_count') and combined_author_name == BOTOWNER:
+    if lower_msg.startswith('.swenglish_count'):# and combined_author_name == BOTOWNER:
         swenglish_table = get_swenglish_counts()
         message = ""
         for row in swenglish_table:
