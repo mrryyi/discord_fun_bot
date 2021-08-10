@@ -3,6 +3,7 @@ import os
 import sys
 
 from memes_from_reddit import *
+from swenglish_detection import *
 from quotes import *
 from responsive import *
 
@@ -13,6 +14,7 @@ botclient = discord.Client()
 GUILDID = os.getenv('GUILDID')
 BOTOWNER = os.getenv('BOTOWNER')
 
+loaded_english_words = load_english_words()
 
 @botclient.event
 async def on_ready():
@@ -45,6 +47,14 @@ async def on_message(message):
         else:
             await message.channel.send("don't @ me")
         message_sent = True
+    
+    swenglish_data = get_swenglish_data(english_words=loaded_english_words, sentence=lower_msg)
+    is_swenglish = is_swenglish_by_ratio(0.4, 0.6, swenglish_data)
+    if not message_sent and is_swenglish:
+        print_swenglish_data(swenglish_data)
+        await message.channel.send("Possible swenglish detected. Respond with \"ligma\" to stop detection.")
+        message_sent = True
+
 
     emoji_reactions = get_reactions(msg = lower_msg, available_emojis = botclient.emojis)
     for emoji in emoji_reactions:

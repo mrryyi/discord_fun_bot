@@ -42,6 +42,7 @@ d_reactions["raid"] = ["Harold"]
 d_reactions["dungeon"] = ["Harold"]
 d_reactions["keys"] = ["Harold"]
 d_reactions["transmog"] = ["Harold"]
+d_reactions["m+"] = ["Harold"]
 
 def get_reactions(msg, available_emojis):
     reactions = []
