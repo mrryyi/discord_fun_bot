@@ -61,8 +61,13 @@ def get_swenglish_data(sentence):
     elif english_amount == 0 and swedish_amount == 0:
         swenglish_verdict = "unknown"
 
-    swedish_ratio = swedish_amount / total_words
-    english_ratio = english_amount / total_words
+    if total_words != 0:
+        swedish_ratio = swedish_amount / total_words
+        english_ratio = english_amount / total_words
+    else:
+        swedish_ratio = 0
+        english_ratio = 0
+        
 
     swenglish_data["text"] = sentence
     swenglish_data["swenglish_verdict"] = swenglish_verdict
