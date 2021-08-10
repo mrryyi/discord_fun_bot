@@ -1,8 +1,4 @@
-def load_english_words():
-    with open('words/english_words.txt') as word_file:
-        valid_words = set(word_file.read().split())
-    
-    return valid_words
+from textblob import *
 
 def load_samples():
     with open('words/swenglish_sample.txt') as sample_file:
@@ -10,27 +6,78 @@ def load_samples():
 
     return sample_sentences
 
-def get_swenglish_data(english_words, sentence):
+def get_swenglish_data(sentence):
+    swedish_amount = 0
+    english_amount = 0
+    undetectable_words_amount = 0
+    swenglish_verdict = "unknown"
     swenglish_data = {}
 
-    words = sentence.split(' ')
-    amount_of_words = len(words)
-    amount_of_detected_english_words = 0
-    for word in words:
-        if word in english_words:
-            amount_of_detected_english_words += 1
+    list_of_words = sentence.replace(',', '').replace('.','').split(' ')
+
+    # TextBlob.detect_language() requires a string with at least 3 characters
+    for word in list_of_words:
+        if len(word) < 3:
+            list_of_words.remove(word)
+            undetectable_words_amount += 1
     
-    if amount_of_words != 0 or amount_of_detected_english_words != 0:
-        english_ratio = amount_of_detected_english_words / amount_of_words
-    else:
-        english_ratio = 0
+    total_words = len(list_of_words)
+
+    for word in list_of_words:
+        blob = TextBlob(word)
+        result = blob.detect_language() # Uses google API
+
+        if result == "sv":
+            swedish_amount += 1
+        elif result == "en":
+            english_amount += 1
     
+    """
+    
+    How to detect swenglish?
+    There needs to be a mix of swedish and english
+
+    We have identified swenglish can happen with huge ratios, or lower ratios.
+    As high as 90% swedish or 66% english or 8.3% english, etc
+
+    So how do we determine it?
+    Perhaps we shall test a few approaches.
+
+    Approach "ratio":
+        min ratio, max ratio for swedish
+        min ratio, max ratio for english
+
+    Approach "raw" or "keep it simple stupid:
+        At least 3 words
+        At least both english and swedish detected
+    """
+
+    if total_words >= 3 and swedish_amount > 0 and english_amount > 0:
+        swenglish_verdict = "swenglish"
+    elif swedish_amount == 0 and english_amount > 0:
+        swenglish_verdict = "english"    
+    elif english_amount == 0 and swedish_amount > 0:
+        swenglish_verdict = "swedish"
+    elif english_amount == 0 and swedish_amount == 0:
+        swenglish_verdict = "unknown"
+
+    swedish_ratio = swedish_amount / total_words
+    english_ratio = english_amount / total_words
+
     swenglish_data["text"] = sentence
+    swenglish_data["swenglish_verdict"] = swenglish_verdict
+    swenglish_data["swedish_ratio"] = swedish_ratio
     swenglish_data["english_ratio"] = english_ratio
-    swenglish_data["total_words"] = amount_of_words
-    swenglish_data["english_words"] = amount_of_detected_english_words
+    swenglish_data["swedish_words"] = swedish_amount
+    swenglish_data["english_words"] = english_amount
+    swenglish_data["total_words"] = total_words
+    swenglish_data["undetectable_words_amount"] = undetectable_words_amount
 
     return swenglish_data
+
+def print_swenglish_data(swenglish_data):
+    for key, value in swenglish_data:
+        print(key, ' : ', value)
 
 def is_swenglish_by_ratio(min, max, swenglish_data):
     english_ratio = swenglish_data["english_ratio"]
@@ -39,29 +86,13 @@ def is_swenglish_by_ratio(min, max, swenglish_data):
     else:
         return False
 
-def is_swenglish_easy(loaded_english_words, sentence):
-    swenglish_data = get_swenglish_data(loaded_english_words, sentence)
-    is_swenglish = is_swenglish_by_ratio(swenglish_data)
-    return is_swenglish 
-
-
-def print_swenglish_data(swenglish_data):
-    
-    print("english words: " + str(swenglish_data["english_words"]))
-    print("total words: " + str(swenglish_data["total_words"]))
-    print("english ratio: " + str(swenglish_data["english_ratio"]))
+def is_swenglish_by_verdict(sentence):
+    swenglish_data = get_swenglish_data(sentence)
+    return swenglish_data["verdict"] == "swenglish"
 
 if __name__ == '__main__':
-    loaded_english_words = load_english_words()
     sample_sentences = load_samples()
-    # demo print
 
     for sample in sample_sentences:
-
-        swenglish_data = get_swenglish_data(english_words=loaded_english_words, sentence=sample)
-
-        print(sample)
-        print("english words: " + str(swenglish_data["english_words"]))
-        print("total words: " + str(swenglish_data["total_words"]))
-        print("english ratio: " + str(swenglish_data["english_ratio"]))
-        print("-----------------------------------")
+        swenglish_data = get_swenglish_data(sentence=sample)
+        print_swenglish_data(swenglish_data)
