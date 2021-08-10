@@ -4,8 +4,15 @@ sql_connection = sqlite3.connect('stats.db')
 
 sql_cursor = sql_connection.cursor()
 
+"""
 sql_cursor.execute(
           "ALTER TABLE swenglish ADD COLUMN jump_url TEXT")
+
+sql_cursor.execute(
+          "DROP TABLE swenglish")
+
+"""
+
 
 sql_connection.commit()
 

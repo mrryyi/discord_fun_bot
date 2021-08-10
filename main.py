@@ -52,12 +52,10 @@ def register_user(user):
 def update_swenglish_table(context):
     sql_cursor.execute("INSERT INTO swenglish(swenglish_text, user_id, date_time, jump_url) VALUES(?,?,CURRENT_TIMESTAMP,?)",
         (context.content, context.author.id, context.jump_url))
-        
     sql_connection.commit()
-
     print("INSERTED NEW SWENGLISH TEXT")
 
-def get_swenglish_table():
+def get_swenglish_messages():
     
     sql_cursor.execute("SELECT "
                        "u.combined_name as username,"
@@ -69,8 +67,21 @@ def get_swenglish_table():
     data = sql_cursor.fetchall()
     return data
 
+def get_swenglish_counts():
+    
+    sql_cursor.execute("SELECT "
+                       "u.combined_name as username,"
+                       "COUNT(sw.ROWID) as swenglish_count "
+                       "FROM swenglish sw "
+                       "inner join users u on sw.user_id = u.user_id "
+                       "group by username "
+                       "order by count(sw.ROWID) desc")
+    data = sql_cursor.fetchall()
+    return data
+
+
 def show_swenglish_table():
-    data = get_swenglish_table()
+    data = get_swenglish_messages()
     print(data)
 
 
@@ -80,6 +91,11 @@ def combine_name_discriminator(user):
 def print_user(user):
     print(user.id)
     print(combine_name_discriminator(user))
+
+async def reaction(context):
+    emoji_reactions = get_reactions(msg = context.content.lower(), available_emojis = botclient.emojis)
+    for emoji in emoji_reactions:
+        await context.add_reaction(emoji)
 
 @botclient.event
 async def on_ready():
@@ -116,15 +132,10 @@ async def on_message(context):
     
     swenglish_data = get_swenglish_data(sentence=lower_msg)
     swenglish_verdict = swenglish_data["swenglish_verdict"]
-    if not message_sent and swenglish_verdict == "swenglish":
-        ""
+    if swenglish_verdict == "swenglish":
         update_swenglish_table(context)
-        #await message.channel.send("Possible swenglish detected")
-        #message_sent = True
 
-    emoji_reactions = get_reactions(msg = lower_msg, available_emojis = botclient.emojis)
-    for emoji in emoji_reactions:
-        await context.add_reaction(emoji)
+    await reaction(context)
 
     if not message_sent and lower_msg.startswith('.inspire'):
         await context.channel.send(get_inspire_quote())
@@ -138,7 +149,7 @@ async def on_message(context):
         show_swenglish_table()
     
     if lower_msg.startswith('.swenglish_so_far') and combined_author_name == BOTOWNER:
-        swenglish_table = get_swenglish_table()
+        swenglish_table = get_swenglish_messages()
         message = ""
         for row in swenglish_table:
             username = row[0]
@@ -149,6 +160,17 @@ async def on_message(context):
                 message += "[" + datetime + "] " + username + ": " + swenglish + " " + url + "\n"
             else:
                 message += "[" + datetime + "] " + username + ": " + swenglish + "\n"
+
+        await context.channel.send(message)
+        message_sent = True
+    
+    if lower_msg.startswith('.swenglish_count') and combined_author_name == BOTOWNER:
+        swenglish_table = get_swenglish_counts()
+        message = ""
+        for row in swenglish_table:
+            username = row[0]
+            swenglish_count = row[1]
+            message += username + ": " + str(swenglish_count) + "\n"
 
         await context.channel.send(message)
         message_sent = True
