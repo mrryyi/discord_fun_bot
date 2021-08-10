@@ -52,7 +52,7 @@ async def on_message(message):
     is_swenglish = is_swenglish_by_ratio(0.4, 0.6, swenglish_data)
     if not message_sent and is_swenglish:
         print_swenglish_data(swenglish_data)
-        await message.channel.send("Possible swenglish detected. Respond with \"ligma\" to stop detection.")
+        await message.channel.send("Possible swenglish detected")
         message_sent = True
 
 
