@@ -6,8 +6,10 @@ def load_samples():
 
     return sample_sentences
 
-discounted_words = ['yeah', 'man']
-def get_swenglish_data(sentence):
+discounted_words = ['yeah', 'man', 'google', 'lootspec','']
+
+# The reason we have short swedish words here is that google refuses to identify words below 3 characters.
+def get_swenglish_data(short_swedish_words, sentence):
     swedish_amount = 0
     english_amount = 0
     undetectable_words_amount = 0
@@ -18,7 +20,7 @@ def get_swenglish_data(sentence):
 
     # TextBlob.detect_language() requires a string with at least 3 characters, and some words don't count
     for word in list_of_words:
-        if len(word) < 3 or word in discounted_words:
+        if word in discounted_words:
             list_of_words.remove(word)
             undetectable_words_amount += 1
     
@@ -26,7 +28,12 @@ def get_swenglish_data(sentence):
 
     for word in list_of_words:
         blob = TextBlob(word)
-        result = blob.detect_language() # Uses google API
+        if len(word) >= 3:
+            result = blob.detect_language() # Uses google API
+        elif word.lower() in short_swedish_words:
+            result = "sv"
+        else:
+            result = "unknown"
 
         if result == "sv":
             swedish_amount += 1

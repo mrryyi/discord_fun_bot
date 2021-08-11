@@ -35,6 +35,11 @@ sql_cursor.execute(
           "jump_url TEXT,"
           "FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE"
           ")")
+        
+sql_cursor.execute("CREATE TABLE IF NOT EXISTS short_swedish_words"
+          "("
+          "word TEXT(500) NOT NULL UNIQUE"
+          ")")
 
 sql_connection.commit()
 
@@ -56,7 +61,6 @@ def update_swenglish_table(context):
     print("INSERTED NEW SWENGLISH TEXT")
 
 def get_swenglish_messages():
-    
     sql_cursor.execute("SELECT "
                        "u.combined_name as username,"
                        "swenglish_text as swenglish, "
@@ -68,7 +72,6 @@ def get_swenglish_messages():
     return data
 
 def get_swenglish_counts():
-    
     sql_cursor.execute("SELECT "
                        "u.combined_name as username,"
                        "COUNT(sw.ROWID) as swenglish_count "
@@ -93,7 +96,11 @@ def print_user(user):
     print(combine_name_discriminator(user))
 
 def handle_swenglish(context):
-    swenglish_data = get_swenglish_data(context.content.lower())
+    sql_cursor.execute("SELECT * from short_swedish_words")
+    list_of_tuples = sql_cursor.fetchall()
+    short_swedish_words = [word for tuple in list_of_tuples for word in tuple]
+
+    swenglish_data = get_swenglish_data(short_swedish_words, context.content.lower())
     swenglish_verdict = swenglish_data["swenglish_verdict"]
     if swenglish_verdict == "swenglish":
         update_swenglish_table(context)

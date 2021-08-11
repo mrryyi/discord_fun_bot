@@ -1,5 +1,6 @@
 .env
 launch.json
 __py*
-*.txt
+english_words.txt
+swenglish_sample.txt
 *.db*
