@@ -6,6 +6,7 @@ def load_samples():
 
     return sample_sentences
 
+discounted_words = ['yeah', 'man']
 def get_swenglish_data(sentence):
     swedish_amount = 0
     english_amount = 0
@@ -15,9 +16,9 @@ def get_swenglish_data(sentence):
 
     list_of_words = sentence.replace(',', '').replace('.','').split(' ')
 
-    # TextBlob.detect_language() requires a string with at least 3 characters
+    # TextBlob.detect_language() requires a string with at least 3 characters, and some words don't count
     for word in list_of_words:
-        if len(word) < 3:
+        if len(word) < 3 or word in discounted_words:
             list_of_words.remove(word)
             undetectable_words_amount += 1
     
