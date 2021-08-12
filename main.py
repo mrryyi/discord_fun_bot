@@ -243,10 +243,7 @@ async def on_message(context):
         message = ""
         message_lines.reverse()
         for line in message_lines:
-            if len(message + line) > 2000: 
-                break
-            else:
-                message += line
+            message += line
 
         await context.channel.send(message)
         message_sent = True
@@ -264,7 +261,6 @@ async def on_message(context):
                 await context.delete()
                 await context.channel.send(unique_response)
                 message_sent = True
-
     
     if not message_sent and random.randint(1,420) == 69:
         print("ligma balls")
