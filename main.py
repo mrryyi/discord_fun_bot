@@ -2,6 +2,7 @@ import discord
 import os
 import sys
 import sqlite3
+import datetime
 
 from memes_from_reddit import *
 from swenglish_detection import *
@@ -44,9 +45,7 @@ sql_cursor.execute("CREATE TABLE IF NOT EXISTS short_swedish_words"
 sql_connection.commit()
 
 def register_user(user):
-    
     try:
-        print_user(user)
         sql_cursor.execute("INSERT INTO users(user_id, combined_name) VALUES(?,?)",
             (user.id, combine_name_discriminator(user)))
     except sqlite3.IntegrityError:
@@ -55,10 +54,53 @@ def register_user(user):
     sql_connection.commit()
 
 def update_swenglish_table(context):
-    sql_cursor.execute("INSERT INTO swenglish(swenglish_text, user_id, date_time, jump_url) VALUES(?,?,CURRENT_TIMESTAMP,?)",
-        (context.content, context.author.id, context.jump_url))
+
+    #created_at = datetime.date.fromisoformat(context.created_at)
+    date = context.created_at.strftime('%Y-%m-%d %H:%M:%S')
+
+    sql_cursor.execute("INSERT INTO swenglish(swenglish_text, user_id, date_time, jump_url) VALUES(?,?,?,?)",
+        (context.content, context.author.id, date, context.jump_url))
     sql_connection.commit()
     print("INSERTED NEW SWENGLISH TEXT")
+
+async def get_message_by_url(url):
+    split_link = url.split('/')
+    server_id  = int(split_link[4])
+    channel_id = int(split_link[5])
+    message_id = int(split_link[6])
+    server = botclient.get_guild(server_id)
+    channel = server.get_channel(channel_id)
+    message = await channel.fetch_message(message_id)
+    return message
+
+
+
+async def add_swenglish_by_message_url(url):
+        if message_url_is_valid(url):
+            swenglish_message = await get_message_by_url(url)
+            update_swenglish_table(swenglish_message)
+        else:
+            return
+
+def message_url_is_valid(url):
+    return "https" in url and "discord" in url and "channel" in url
+        
+
+async def add_swenglish_by_url_command(context):
+    if " " in context.content:
+        url = context.content.split(' ')[1]
+        if message_url_is_valid(url):
+            await add_swenglish_by_message_url(url)
+        else:
+            return
+
+async def load_swenglish_urls():
+    with open('words/swenglish_urls.txt') as words:
+        lines = set(words.read().split('\n'))
+    
+    for line in lines:
+        await add_swenglish_by_message_url(line)
+
 
 def get_swenglish_messages():
     sql_cursor.execute("SELECT "
@@ -67,7 +109,8 @@ def get_swenglish_messages():
                        "strftime('%Y-%m-%d %H:%M:%S', DATETIME(sw.date_time, '+120 minutes')) as datetime, "
                        "jump_url "
                        "FROM swenglish sw "
-                       "inner join users u on sw.user_id = u.user_id")
+                       "inner join users u on sw.user_id = u.user_id "
+                       "order by datetime desc")
     data = sql_cursor.fetchall()
     return data
 
@@ -136,15 +179,12 @@ async def on_message(context):
         return
     
     message_sent = False
-
-    register_user(context.author)
-
     combined_author_name = combine_name_discriminator(context.author)    
-
     msg = context.content
     lower_msg = msg.lower()
-    
-    print("Message: ["+ lower_msg + "]")
+
+    register_user(context.author)
+    print("[" + combined_author_name + "]: "+ lower_msg)
 
     if not message_sent:
         message_sent = await handle_response_trigger(context)
@@ -165,24 +205,8 @@ async def on_message(context):
     
     if lower_msg.startswith('.debug_sql_swenglish'):
         show_swenglish_table()
-    
-    if lower_msg.startswith('.swenglish_so_far'):# and combined_author_name == BOTOWNER:
-        swenglish_table = get_swenglish_messages()
-        message = ""
-        for row in swenglish_table:
-            username = row[0]
-            swenglish = row[1]
-            datetime = row[2]
-            url = row[3]
-            if url and 'link' in lower_msg:
-                message += "[" + datetime + "] " + username + ": " + swenglish + " " + url + "\n"
-            else:
-                message += "[" + datetime + "] " + username + ": " + swenglish + "\n"
 
-        await context.channel.send(message)
-        message_sent = True
-    
-    if lower_msg.startswith('.swenglish_count'):# and combined_author_name == BOTOWNER:
+    if not message_sent and lower_msg.startswith('.sweng_count'):# and combined_author_name == BOTOWNER:
         swenglish_table = get_swenglish_counts()
         message = ""
         for row in swenglish_table:
@@ -193,6 +217,46 @@ async def on_message(context):
         await context.channel.send(message)
         message_sent = True
 
+    if not message_sent and lower_msg.startswith('.sweng'):# and combined_author_name == BOTOWNER:
+        swenglish_table = get_swenglish_messages()
+        message_lines = []
+        message_line = ""
+        length_so_far = 0
+        for row in swenglish_table:
+            username = row[0]
+            swenglish = row[1]
+            if '@' in swenglish:
+                swenglish = swenglish.replace('@','')
+            datetime = row[2]
+            url = row[3]
+            if url and 'link' in lower_msg:
+                message_line = "[" + datetime + "] " + username + ": " + swenglish + " " + url + "\n"
+            else:
+                message_line = "[" + datetime + "] " + username + ": " + swenglish + "\n"
+
+            if length_so_far + len(message_line) <= 2000:
+                length_so_far += len(message_line)
+                message_lines.append(message_line)
+            else:
+                break
+        
+        message = ""
+        message_lines.reverse()
+        for line in message_lines:
+            if len(message + line) > 2000: 
+                break
+            else:
+                message += line
+
+        await context.channel.send(message)
+        message_sent = True
+    
+    if lower_msg.startswith('.add'):
+        await add_swenglish_by_url_command(context)
+
+    if lower_msg.startswith('.load'):
+        await load_swenglish_urls()
+
     if combined_author_name == BOTOWNER:
         if not message_sent:
             unique_response = get_unique_response(msg = lower_msg)
@@ -202,7 +266,7 @@ async def on_message(context):
                 message_sent = True
 
     
-    if not message_sent and random.randint(1,69) == 42:
+    if not message_sent and random.randint(1,420) == 69:
         print("ligma balls")
         await context.channel.send("ligma balls")
 

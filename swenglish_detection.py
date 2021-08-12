@@ -6,7 +6,9 @@ def load_samples():
 
     return sample_sentences
 
-discounted_words = ['yeah', 'man', 'google', 'lootspec','']
+# Words we will pretend doesn't exist
+discounted_words = ['yeah','man','google','lootspec','imorrn','boten','loot','spec','vault','trinket','trinkets','loostspec','raid',
+                    'fast','racing','yhea','oliver']
 
 # The reason we have short swedish words here is that google refuses to identify words below 3 characters.
 def get_swenglish_data(short_swedish_words, sentence):
@@ -17,28 +19,28 @@ def get_swenglish_data(short_swedish_words, sentence):
     swenglish_data = {}
 
     list_of_words = sentence.replace(',', '').replace('.','').split(' ')
+    
+    total_words = 0
 
-    # TextBlob.detect_language() requires a string with at least 3 characters, and some words don't count
     for word in list_of_words:
         if word in discounted_words:
             list_of_words.remove(word)
             undetectable_words_amount += 1
-    
-    total_words = len(list_of_words)
-
-    for word in list_of_words:
-        blob = TextBlob(word)
-        if len(word) >= 3:
-            result = blob.detect_language() # Uses google API
-        elif word.lower() in short_swedish_words:
-            result = "sv"
         else:
-            result = "unknown"
+            total_words += 1
+            # TextBlob.detect_language() requires a string with at least 3 characters
+            if len(word) >= 3:
+                blob = TextBlob(word)
+                result = blob.detect_language() # Uses google API
+            elif word.lower() in short_swedish_words:
+                result = "sv"
+            else:
+                result = "unknown"
 
-        if result == "sv":
-            swedish_amount += 1
-        elif result == "en":
-            english_amount += 1
+            if result == "sv":
+                swedish_amount += 1
+            elif result == "en":
+                english_amount += 1
     
     """
     

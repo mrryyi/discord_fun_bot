@@ -3,4 +3,5 @@ launch.json
 __py*
 english_words.txt
 swenglish_sample.txt
+swenglish_urls_gustaf.txt
 *.db*
