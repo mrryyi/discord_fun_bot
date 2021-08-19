@@ -16,8 +16,65 @@ inspire_quotes = [
     "Optimism is the faith that leads to achievement. Nothing can be done without hope and Monster Energy™.",
     "Pursue one great decisive aim with force, determination, and caffeine.", 
     "Perfection is not attainable, but if we chase perfection we can catch Rayquaza with regular pokéballs.",
-    "Whoever is happy will make others drink Monster Energy™ too."
+    "Whoever is happy will make others drink Monster Energy™ too.",
+    "When you find yourself in a hole, it's too late to put on a condom.",
+    "Sometimes the wheel turns slowly, but it still turns me on.",
+    "We are all apprentices in a craft where no one ever becomes a master.",
+    "Träna hårdare på gymmet",
+    "Ät mer",
+    "Skippa inte gymmet",
+    "Remember that people break down, too, not just machinery. (unless they go to the gym)",
+    "Rocks in my path? I keep them all. With them I shall build my strongman gym",
+    "Many of us take better care of our computers than we do of our own bodies … yet the computer has replaceable parts. Go to the gym"
 ]
 
 def get_inspire_quote():
     return random.choice(inspire_quotes)
+
+uninspire_quotes = [
+"Trying is the first step toward failure.",
+"You have to make the good out of the bad because that is all you have got to make it out of.”",
+"The best things in life are actually really expensive.",
+"Success is just failure that hasn't happened yet.",
+"Not everything is a lesson. Sometimes you just fail.",
+"If at first you don't succeed, try, try again. Then quit. No use being a damn fool about it.”",
+"Challenging yourself...is a good way to fail.",
+"Eagles may soar, but weasels don't get sucked into jet engines.",
+"If you want to know what God thinks of money, just look at the people he gave it to.”",
+"It’s only when you look at an ant through a magnifying glass on a sunny day that you realize how often they burst into flames.",
+"I'm sure the universe is full of intelligent life. It's just been too intelligent to come here.”",
+"The worst part of success is trying to find someone who is happy for you.”",
+"Two things are infinite: the universe and human stupidity; and I'm not sure about the universe.",
+"Just imagine how terrible it might have been if we’d been at all competent.”",
+"TEAMWORK: A few harmless flakes working together can unleash an avalanche of destruction.",
+"Always remember that you are absolutely unique. Just like everyone else.",
+"Never underestimate the power of stupid people in large groups.",
+"Go to heaven for the climate and hell for the company.”",
+"I love mankind... it's people I can't stand!”",
+"I am free of all prejudice. I hate everyone equally.”",
+"When we talk to God, we’re praying. When God talks to us, we’re schizophrenic.",
+"He who laughs last didn’t get the joke.",
+"I do not want people to be very agreeable, as it saves me the trouble of liking them a great deal.",
+"The capacity for friendship is God's way of apologizing for our families.”",
+"Light travels faster than sound. This is why some people appear bright until you hear them speak.",
+"It could be that your purpose in life is to serve as a warning to others.",
+"Fate is like a strange, unpopular restaurant filled with odd little waiters who bring you things you never asked for and don't always like.”",
+"The light at the end of the tunnel has been turned off due to budget cuts.",
+"I’ve developed a new philosophy. I only dread one day at a time.",
+"Hope is the first step on the road to disappointment.",
+"We learn from experience that men never learn anything from experience.",
+"The story so far: In the beginning the Universe was created. This has made a lot of people very angry and been widely regarded as a bad move.”",
+"Do not take life too seriously. You will never get out of it alive.",
+"Life is like riding a bicycle. To keep your balance, you must keep moving.",
+"Everything happens for a reason. Sometimes the reason is you're stupid and make bad decisions.",
+"Everyone has a purpose in life. Perhaps yours is watching television.",
+"Nothing on this earth lasts forever. Except maybe plastic.",
+"There’s so much plastic in this culture that vinyl leopard skin is becoming an endangered synthetic.",
+"One always dies too soon — or too late. And yet, life is there, finished: the line is drawn, and it must all be added up. You are nothing other than your life.",
+"Time is too large, it can’t be filled up. Everything you plunge into it is stretched and disintegrates.",
+"I exist, that is all, and I find it nauseating.",
+"It is often said that before you die your life passes before your eyes. It is, in fact, true. It's called living."
+]
+
+def get_uninspire_quote():
+    return random.choice(uninspire_quotes)

@@ -4,6 +4,7 @@ import sys
 import sqlite3
 import datetime
 
+from sql_lib import *
 from memes_from_reddit import *
 from swenglish_detection import *
 from quotes import *
@@ -61,7 +62,6 @@ def update_swenglish_table(context):
     sql_cursor.execute("INSERT INTO swenglish(swenglish_text, user_id, date_time, jump_url) VALUES(?,?,?,?)",
         (context.content, context.author.id, date, context.jump_url))
     sql_connection.commit()
-    print("INSERTED NEW SWENGLISH TEXT")
 
 async def get_message_by_url(url):
     split_link = url.split('/')
@@ -72,8 +72,6 @@ async def get_message_by_url(url):
     channel = server.get_channel(channel_id)
     message = await channel.fetch_message(message_id)
     return message
-
-
 
 async def add_swenglish_by_message_url(url):
         if message_url_is_valid(url):
@@ -114,6 +112,19 @@ def get_swenglish_messages():
     data = sql_cursor.fetchall()
     return data
 
+def get_swenglish_message_latest():
+    sql_cursor.execute("SELECT "
+                       "u.combined_name as username,"
+                       "swenglish_text as swenglish, "
+                       "strftime('%Y-%m-%d %H:%M:%S', DATETIME(sw.date_time, '+120 minutes')) as datetime, "
+                       "jump_url "
+                       "FROM swenglish sw "
+                       "inner join users u on sw.user_id = u.user_id "
+                       "order by datetime desc "
+                       "LIMIT 1")
+    data = sql_cursor.fetchall()
+    return data
+
 def get_swenglish_counts():
     sql_cursor.execute("SELECT "
                        "u.combined_name as username,"
@@ -138,6 +149,41 @@ def print_user(user):
     print(user.id)
     print(combine_name_discriminator(user))
 
+def get_random_swenglish():
+
+    sql_cursor.execute("SELECT COUNT(*) FROM swenglish")
+    data = sql_cursor.fetchall()
+    count_of_rows = data[0][0]
+    random_offset = random.randint(0, count_of_rows)
+
+    sql_cursor.execute("SELECT "
+                       "u.combined_name as username,"
+                       "swenglish_text as swenglish, "
+                       "strftime('%Y-%m-%d %H:%M:%S', DATETIME(sw.date_time, '+120 minutes')) as datetime, "
+                       "jump_url "
+                       "FROM swenglish sw "
+                       "inner join users u on sw.user_id = u.user_id "
+                       "order by datetime desc "
+                       "LIMIT 1 OFFSET " + str(random_offset))
+
+    data = sql_cursor.fetchall()
+
+    row = data[0]
+    username = row[0]
+    swenglish = row[1]
+    if '@' in swenglish:
+        swenglish = swenglish.replace('@','')
+    datetime = row[2]
+    url = row[3]
+
+    if url:
+        message_line = "[" + datetime + "] " + username + ": " + swenglish + " " + url + "\n"
+    else:
+        message_line = "[" + datetime + "] " + username + ": " + swenglish + "\n"
+    
+    return message_line
+    
+
 def handle_swenglish(context):
     sql_cursor.execute("SELECT * from short_swedish_words")
     list_of_tuples = sql_cursor.fetchall()
@@ -147,6 +193,8 @@ def handle_swenglish(context):
     swenglish_verdict = swenglish_data["swenglish_verdict"]
     if swenglish_verdict == "swenglish":
         update_swenglish_table(context)
+        print(*swenglish_data["english_words"])
+        print("INSERTED NEW SWENGLISH TEXT")
 
 async def handle_response_trigger(context):
     response_trigger = get_response_trigger(context.content.lower())
@@ -177,9 +225,11 @@ async def on_ready():
 async def on_message(context):
     if context.author == botclient.user:
         return
+
     
     message_sent = False
     combined_author_name = combine_name_discriminator(context.author)    
+    author_sent_message = combined_author_name == BOTOWNER
     msg = context.content
     lower_msg = msg.lower()
 
@@ -192,69 +242,117 @@ async def on_message(context):
     if not message_sent:
         message_sent = await handle_atting(context)
     
-    handle_swenglish(context)
     await reaction(context)
 
-    if not message_sent and lower_msg.startswith('.inspire'):
-        await context.channel.send(get_inspire_quote())
-        message_sent = True
+    message_is_command = lower_msg.startswith('.')
 
-    if not message_sent and lower_msg.startswith('.meme'):
-        await context.channel.send(get_meme_message())
-        message_sent = True
+    # Don't handle swenglish if it's a command to save google API responses.
+    if not message_is_command:
+        ""
+        #handle_swenglish(context)
     
-    if lower_msg.startswith('.debug_sql_swenglish'):
-        show_swenglish_table()
-
-    if not message_sent and lower_msg.startswith('.sweng_count'):# and combined_author_name == BOTOWNER:
-        swenglish_table = get_swenglish_counts()
-        message = ""
-        for row in swenglish_table:
-            username = row[0]
-            swenglish_count = row[1]
-            message += username + ": " + str(swenglish_count) + "\n"
-
-        await context.channel.send(message)
-        message_sent = True
-
-    if not message_sent and lower_msg.startswith('.sweng'):# and combined_author_name == BOTOWNER:
-        swenglish_table = get_swenglish_messages()
-        message_lines = []
-        message_line = ""
-        length_so_far = 0
-        for row in swenglish_table:
-            username = row[0]
-            swenglish = row[1]
-            if '@' in swenglish:
-                swenglish = swenglish.replace('@','')
-            datetime = row[2]
-            url = row[3]
-            if url and 'link' in lower_msg:
-                message_line = "[" + datetime + "] " + username + ": " + swenglish + " " + url + "\n"
-            else:
-                message_line = "[" + datetime + "] " + username + ": " + swenglish + "\n"
-
-            if length_so_far + len(message_line) <= 2000:
-                length_so_far += len(message_line)
-                message_lines.append(message_line)
-            else:
-                break
+    if message_is_command:
+        if not message_sent and lower_msg.startswith('.inspire'):
+            await context.channel.send(get_inspire_quote())
+            message_sent = True
         
-        message = ""
-        message_lines.reverse()
-        for line in message_lines:
-            message += line
+        if not message_sent and lower_msg.startswith('.uninspire'):
+            await context.channel.send(get_uninspire_quote())
+            message_sent = True
 
-        await context.channel.send(message)
-        message_sent = True
+        if not message_sent and lower_msg.startswith('.meme'):
+            await context.channel.send(get_meme_message())
+            message_sent = True
+        
+        if lower_msg.startswith('.swengdbg'):
+            show_swenglish_table()
+            print_swenglish_messages(sql_cursor)
+            message_sent = True
+
+        if not message_sent and lower_msg.startswith('.sweng_count'):# and combined_author_name == BOTOWNER:
+            swenglish_table = get_swenglish_counts()
+            message = ""
+            for row in swenglish_table:
+                username = row[0]
+                swenglish_count = row[1]
+                message += username + ": " + str(swenglish_count) + "\n"
+
+            await context.channel.send(message)
+            message_sent = True
+        
+        if not message_sent and lower_msg.startswith('.swenglatest'):
+            swenglish_table = get_swenglish_message_latest()
+            message_lines = []
+            message_line = ""
+            length_so_far = 0
+            for row in swenglish_table:
+                username = row[0]
+                swenglish = row[1]
+                if '@' in swenglish:
+                    swenglish = swenglish.replace('@','')
+                datetime = row[2]
+                url = row[3]
+                if url and 'link' in lower_msg:
+                    message_line = "[" + datetime + "] " + username + ": " + swenglish + " " + url + "\n"
+                else:
+                    message_line = "[" + datetime + "] " + username + ": " + swenglish + "\n"
+
+                if length_so_far + len(message_line) <= 2000:
+                    length_so_far += len(message_line)
+                    message_lines.append(message_line)
+                else:
+                    break
+            
+            message = ""
+            message_lines.reverse()
+            for line in message_lines:
+                message += line
+            if message:
+                await context.channel.send(message)
+            message_sent = True
+
+        if not message_sent and lower_msg.startswith('.sweng'):
+            swenglish_table = get_swenglish_messages()
+            message_lines = []
+            message_line = ""
+            length_so_far = 0
+            for row in swenglish_table:
+                username = row[0]
+                swenglish = row[1]
+                if '@' in swenglish:
+                    swenglish = swenglish.replace('@','')
+                datetime = row[2]
+                url = row[3]
+                if url and 'link' in lower_msg:
+                    message_line = "[" + datetime + "] " + username + ": " + swenglish + " " + url + "\n"
+                else:
+                    message_line = "[" + datetime + "] " + username + ": " + swenglish + "\n"
+
+                if length_so_far + len(message_line) <= 2000:
+                    length_so_far += len(message_line)
+                    message_lines.append(message_line)
+                else:
+                    break
+            
+            message = ""
+            message_lines.reverse()
+            for line in message_lines:
+                message += line
+
+            await context.channel.send(message)
+            message_sent = True
     
-    if lower_msg.startswith('.add'):
-        await add_swenglish_by_url_command(context)
+        if lower_msg.startswith('.add') and author_sent_message:
+            await add_swenglish_by_url_command(context)
+        
+        if lower_msg.startswith('.randomsweng'):
+            swenglish_random = get_random_swenglish()
+            await context.channel.send(swenglish_random)
 
-    if lower_msg.startswith('.load'):
-        await load_swenglish_urls()
+        if lower_msg.startswith('.load') and author_sent_message:
+            await load_swenglish_urls()
 
-    if combined_author_name == BOTOWNER:
+    if author_sent_message:
         if not message_sent:
             unique_response = get_unique_response(msg = lower_msg)
             if unique_response:
