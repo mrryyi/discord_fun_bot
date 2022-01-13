@@ -237,7 +237,8 @@ async def on_message(context):
     print("[" + combined_author_name + "]: "+ lower_msg)
 
     if not message_sent:
-        message_sent = await handle_response_trigger(context)
+        if random.randint(1,4) == 2:
+            message_sent = await handle_response_trigger(context)
     
     if not message_sent:
         message_sent = await handle_atting(context)
