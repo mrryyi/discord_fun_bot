@@ -121,7 +121,8 @@ def get_swenglish_message_latest():
                        "FROM swenglish sw "
                        "inner join users u on sw.user_id = u.user_id "
                        "order by datetime desc "
-                       "LIMIT 1")
+                       "LIMIT 1"
+                       )
     data = sql_cursor.fetchall()
     return data
 
@@ -236,9 +237,6 @@ async def on_message(context):
     register_user(context.author)
     print("[" + combined_author_name + "]: "+ lower_msg)
 
-    if not message_sent:
-        if random.randint(1,4) == 2:
-            message_sent = await handle_response_trigger(context)
     
     if not message_sent:
         message_sent = await handle_atting(context)
@@ -247,10 +245,10 @@ async def on_message(context):
 
     message_is_command = lower_msg.startswith('.')
 
-    # Don't handle swenglish if it's a command to save google API responses.
     if not message_is_command:
-        ""
-        #handle_swenglish(context)
+        if not message_sent:
+            if random.randint(1,4) == 2:
+                message_sent = await handle_response_trigger(context)
     
     if message_is_command:
         if not message_sent and lower_msg.startswith('.inspire'):
@@ -270,7 +268,7 @@ async def on_message(context):
             print_swenglish_messages(sql_cursor)
             message_sent = True
 
-        if not message_sent and lower_msg.startswith('.sweng_count'):# and combined_author_name == BOTOWNER:
+        if not message_sent and lower_msg.startswith('.swengcount'):# and combined_author_name == BOTOWNER:
             swenglish_table = get_swenglish_counts()
             message = ""
             for row in swenglish_table:
@@ -303,6 +301,7 @@ async def on_message(context):
                     message_lines.append(message_line)
                 else:
                     break
+                break
             
             message = ""
             message_lines.reverse()
@@ -310,7 +309,7 @@ async def on_message(context):
                 message += line
             if message:
                 await context.channel.send(message)
-            message_sent = True
+                message_sent = True
 
         if not message_sent and lower_msg.startswith('.sweng'):
             swenglish_table = get_swenglish_messages()
@@ -343,7 +342,7 @@ async def on_message(context):
             await context.channel.send(message)
             message_sent = True
     
-        if lower_msg.startswith('.add') and author_sent_message:
+        if lower_msg.startswith('.addsweng'):
             await add_swenglish_by_url_command(context)
         
         if lower_msg.startswith('.randomsweng'):

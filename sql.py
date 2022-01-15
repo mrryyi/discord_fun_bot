@@ -11,8 +11,9 @@ sql_cursor = sql_connection.cursor()
 #delete_swenglish_by_date(sql_cursor, "2021-07-28")
 #delete_swenglish_with_word(sql_cursor, "oliver")
 #delete_swenglish_with_word(sql_cursor, "yhea")
-
 """
+sql_cursor.execute(
+          "DELETE from swenglish where swenglish_text LIKE '%nog all of us%' ")
 sql_cursor.execute(
           "ALTER TABLE swenglish ADD COLUMN count_of_selections INT")
 """
