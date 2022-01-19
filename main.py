@@ -251,6 +251,13 @@ async def on_message(context):
                 message_sent = await handle_response_trigger(context)
     
     if message_is_command:
+        if not message_sent and lower_msg.startswith('.spoiler'):
+            spoiler_message = "[" + combined_author_name + "]: "+ "||" + msg + "||"
+            spoiler_message = spoiler_message.replace(".spoiler","",1)
+            await context.delete()
+            await context.channel.send(spoiler_message)
+            message_sent = True
+
         if not message_sent and lower_msg.startswith('.inspire'):
             await context.channel.send(get_inspire_quote())
             message_sent = True
