@@ -233,9 +233,11 @@ async def on_message(context):
     author_sent_message = combined_author_name == BOTOWNER
     msg = context.content
     lower_msg = msg.lower()
+    channel = context.channel
+    guild = context.guild
 
     register_user(context.author)
-    print("[" + combined_author_name + "]: "+ lower_msg)
+    print("[" + str(guild) + "\\" + str(channel) + "] [" + combined_author_name + "]: "+ lower_msg)
 
     
     if not message_sent:
@@ -267,9 +269,13 @@ async def on_message(context):
             message_sent = True
 
         if not message_sent and lower_msg.startswith('.meme'):
-            await context.channel.send(get_meme_message())
-            message_sent = True
-        
+            while not message_sent:
+                try:
+                    await context.channel.send(get_meme_message())
+                    message_sent = True
+                except ValueError:
+                    print("ValueError :( trying again")
+
         if lower_msg.startswith('.swengdbg'):
             show_swenglish_table()
             print_swenglish_messages(sql_cursor)
