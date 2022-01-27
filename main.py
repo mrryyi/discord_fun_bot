@@ -4,7 +4,7 @@ import sys
 import sqlite3
 import datetime
 
-from config import *
+from datatypes import *
 from sql_lib import *
 from sql_init import *
 from memes_from_reddit import *
