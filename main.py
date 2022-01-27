@@ -4,11 +4,14 @@ import sys
 import sqlite3
 import datetime
 
+from config import *
 from sql_lib import *
+from sql_init import *
 from memes_from_reddit import *
 from swenglish_detection import *
 from quotes import *
 from responsive import *
+from funcdump import *
 
 print(sys.version)
 
@@ -18,32 +21,12 @@ GUILDID = os.getenv('GUILDID')
 BOTOWNER = os.getenv('BOTOWNER')
 
 sql_connection = sqlite3.connect('stats.db')
-
 sql_cursor = sql_connection.cursor()
 
-sql_cursor.execute(
-          "CREATE TABLE IF NOT EXISTS users"
-          "("
-          "user_id TEXT PRIMARY KEY NOT NULL UNIQUE,"
-          "combined_name TEXT NOT NULL"
-          ")")
-
-sql_cursor.execute(
-          "CREATE TABLE IF NOT EXISTS swenglish"
-          "("
-          "swenglish_text TEXT(500) NOT NULL,"
-          "user_id TEXT NOT NULL,"
-          "date_time datetime,"
-          "jump_url TEXT,"
-          "FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE"
-          ")")
-        
-sql_cursor.execute("CREATE TABLE IF NOT EXISTS short_swedish_words"
-          "("
-          "word TEXT(500) NOT NULL UNIQUE"
-          ")")
-
-sql_connection.commit()
+create_configuration_table(sql_cursor, sql_connection)
+create_users_table(sql_cursor, sql_connection)
+create_swenglish_words_table(sql_cursor, sql_connection)
+initiate_default_configurations_table(sql_cursor, sql_connection)
 
 def register_user(user):
     try:
@@ -226,7 +209,6 @@ async def on_ready():
 async def on_message(context):
     if context.author == botclient.user:
         return
-
     
     message_sent = False
     combined_author_name = combine_name_discriminator(context.author)    
@@ -239,20 +221,87 @@ async def on_message(context):
     register_user(context.author)
     print("[" + str(guild) + "\\" + str(channel) + "] [" + combined_author_name + "]: "+ lower_msg)
 
-    
+    config = load_configurations(sql_cursor)
+
+    if not config:
+        print("configurations failed to load")
+
     if not message_sent:
         message_sent = await handle_atting(context)
-    
-    await reaction(context)
 
     message_is_command = lower_msg.startswith('.')
 
     if not message_is_command:
-        if not message_sent:
-            if random.randint(1,4) == 2:
-                message_sent = await handle_response_trigger(context)
+        if config["reactions"].toggled == 1:
+            await reaction(context)
+        
+        if config["responses"].toggled == 1:
+            if not message_sent:
+                if random.randint(1,10) == 2:
+                    message_sent = await handle_response_trigger(context)
     
+    splat_msg = msg.split(" ")
+
     if message_is_command:
+        if not message_sent and lower_msg.startswith('.toggle'):
+            config_answer = "Something went wrong"
+            if not len(splat_msg) > 1:
+                config_answer = "Invalid command. Please supply configuration to toggle."
+            else:
+                config_to_toggle = splat_msg[1].lower()
+                ret = toggle_configuration(sql_cursor, sql_connection, config_to_toggle)
+                if ret == "toggledoff":
+                    config_answer = config_to_toggle + " toggled off."
+                elif ret == "toggledon":
+                    config_answer = config_to_toggle + " toggled on."
+                elif ret ==  "undefined":
+                    config_answer = config_to_toggle + " had weird toggle value."
+                elif ret == "notfound":
+                    config_answer = config_to_toggle + " not found as configuration."
+                
+            await context.channel.send(config_answer)
+
+        if not message_sent and lower_msg.startswith('.showconfig'):
+            verbose = False
+            
+            if len(splat_msg) > 1:
+                if splat_msg[1].lower() == 'verbose':
+                    verbose = True
+            
+            message_lines = []
+            message_line = ""
+            length_so_far = 0
+            for config_name in config:
+                toggled = config[config_name].toggled
+                value_configuration = config[config_name].value_configuration
+                range_min = config[config_name].range_min
+                range_max = config[config_name].range_max
+                
+                if toggled == 1:
+                    toggled_str = "on"
+                else:
+                    toggled_str = "off"
+                
+                if verbose:
+                    message_line = "["+config_name+"]: toggled "+toggled_str+", value_configuration="+str(value_configuration)+", range_min="+str(range_min)+", range_max="+str(range_max)+"\n"
+                else:
+                    message_line = "["+config_name+"]: toggled "+toggled_str+"\n"
+
+                if length_so_far + len(message_line) <= 2000:
+                    length_so_far += len(message_line)
+                    message_lines.append(message_line)
+                else:
+                    break
+
+            message = ""
+            message_lines.reverse()
+            for line in message_lines:
+                message += line
+
+            await context.channel.send(message)
+            message_sent = True
+
+
         if not message_sent and lower_msg.startswith('.spoiler'):
             spoiler_message = "[" + combined_author_name + "]: "+ "||" + msg + "||"
             spoiler_message = spoiler_message.replace(".spoiler","",1)

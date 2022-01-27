@@ -1,16 +1,48 @@
 import sqlite3
 import discord
+from datatypes import Configuration
 
-"""
-sql_cursor.execute(
-          "ALTER TABLE swenglish ADD COLUMN jump_url TEXT")
+def toggle_configuration(sql_cursor, sql_connection, configuration):
+    sql_cursor.execute("SELECT * FROM configurations c where c.configuration = '" + configuration + "'")
 
-sql_cursor.execute(
-          "DROP TABLE swenglish")
+    row = sql_cursor.fetchone()
+    if row is not None:
+        toggled = row[1] # toggled column
+        if toggled == 1:
+            sql_cursor.execute("UPDATE configurations SET toggled = 0 WHERE configuration = '" + configuration + "'")
+            sql_connection.commit()
+            return "toggledoff"
+        elif toggled == 0:
+            sql_cursor.execute("UPDATE configurations SET toggled = 1 WHERE configuration = '" + configuration + "'")
+            sql_connection.commit()
+            return "toggledon"
+        return "undefined"
 
-sql_cursor.execute("delete from swenglish where DATETIME(date_time, '+120 minutes') < '2021-08-10 21:12:00'")
+    # Could not toggle
+    return "notfound"
 
-"""
+def insert_new_configuration(sql_cursor, sql_connection, configuration_name):
+    sql_cursor.execute("SELECT * from configurations c where c.configuration = '" + configuration_name + "'")
+    row = sql_cursor.fetchone()
+    if not row:
+        print("inserting " + configuration_name)
+        toggled = "0"
+        value_configuration = "0"
+        range_min = "0"
+        range_max = "0"
+        sql_cursor.execute("INSERT OR IGNORE INTO configurations(configuration, toggled, value_configuration, range_min, range_max) VALUES(?,?,?,?,?)",
+                                                                (configuration_name, toggled, value_configuration, range_min, range_max))
+        sql_connection.commit()
+    else:
+        print("NOT inserting " + configuration_name)
+
+def load_configurations(sql_cursor):
+    sql_cursor.execute("SELECT * from configurations")
+    configuration_table = sql_cursor.fetchall()
+    config_dict = {}
+    for row in configuration_table:
+        config_dict[row[0]] = Configuration(row[1], row[2], row[3], row[4])
+    return config_dict
 
 def print_swenglish_messages(sql_cursor):
     sql_cursor.execute("SELECT "
