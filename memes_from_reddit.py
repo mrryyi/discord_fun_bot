@@ -4,7 +4,7 @@ import random
 
 already_sent_memes = []
 
-subreddits = ["196", "societylounge","dankmemes","memes","2balkan4you","okpolarncp","whenthe"]
+subreddits = ["196", "societylounge","dankmemes","memes","okpolarncp","whenthe"]
 
 reddit = praw.Reddit(
     client_id=os.getenv('CLIENTID'),
